@@ -8,7 +8,7 @@ on:
   # Allows you to run this workflow manually from the Actions tab. If this is only the one here
   workflow_dispatch:
 
-    environment:
+    myenvironment:
       descriptio: 'environment stage to run'
       type: environment
       required: 'true'
@@ -17,11 +17,9 @@ on:
 jobs:
   # This workflow contains a single job called "build"
   build:
-    environment:
-      name: Approvers
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
-
+    environment: Dev_approval
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
