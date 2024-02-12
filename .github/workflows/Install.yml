@@ -180,7 +180,7 @@ jobs:
         echo "*********************"
   BackoutInstallFail:
     if: always() && (needs.InstallCC.result == 'failure' )
-    name : BackoutOnFailure
+    name : BackoutOnInstallFailure
     needs : [InstallCC]
     runs-on: [ windows-latest ]
     environment : ${{ github.event.inputs.env }}
@@ -194,7 +194,7 @@ jobs:
         }  
   BackoutTestFail:
     if: always() && (needs.TestCC.result == 'failure' )
-    name : BackoutOnFailure
+    name : BackoutOnTestFailure
     needs : [TestCC]
     runs-on: [ windows-latest ]
     environment : ${{ github.event.inputs.env }}
@@ -206,7 +206,20 @@ jobs:
          {
           echo "Executing backout steps "
          }  
-      
+  BackoutCopyFail:
+    if: always() && (needs.CopyFiles.result == 'failure' )
+    name : BackoutOnCopyFailure
+    needs : [CopyFiles]
+    runs-on: [ windows-latest ]
+    environment : ${{ github.event.inputs.env }}
+    steps: 
+     - name: Validation Job Failure Backout
+       run: |
+        echo "******** failure ********"
+        if( "${{ needs.CopyFiles.result }}" -ne "success")
+          {
+           echo "Executing backout steps "
+          }      
 
 
 
