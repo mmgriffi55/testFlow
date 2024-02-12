@@ -50,7 +50,7 @@ env:
 jobs:
   BackupCC_Files:
     name :  ${{ github.event.inputs.env }} backup ${{ github.event.inputs.custom_component }}
-    runs-on: [ ubuntu-latest]
+    runs-on: [ windows-latest]
     environment : ${{ github.event.inputs.env }}
     #TODO : runner will change depending on site chosen.
     steps: 
@@ -72,7 +72,7 @@ jobs:
   ContainNode:
     name :  ${{ github.event.inputs.env }} contain_${{ github.event.inputs.deploy_node }}
     needs : [BackupCC_Files]
-    runs-on: [ ubuntu-latest ]
+    runs-on: [ windows-latest ]
     environment : ${{ github.event.inputs.env }}
     #TODO : runner will change depending on site chosen.
     steps: 
@@ -92,7 +92,7 @@ jobs:
   CopyFiles:
     name: ${{ github.event.inputs.env }} copy ${{ github.event.inputs.custom_component }}
     needs : [ContainNode]
-    runs-on: [ ubuntu-latest ]
+    runs-on: [ windows-latest ]
     environment : ${{ github.event.inputs.env }}
     steps: 
      - name: Checkout MDCCB Packaging Repo
@@ -111,7 +111,7 @@ jobs:
   InstallCC:
     name: ${{ github.event.inputs.env }} install ${{ github.event.inputs.custom_component }}
     needs : [CopyFiles]
-    runs-on: [ ubuntu-latest ]
+    runs-on: [ windows-latest ]
     environment : ${{ github.event.inputs.env }}
     steps: 
      - name: Checkout MDCCB Packaging Repo
@@ -131,7 +131,7 @@ jobs:
   TestCC:
     name: ${{ github.event.inputs.env }} validate ${{ github.event.inputs.custom_component }}
     needs: [InstallCC]
-    runs-on: [ ubuntu-latest ]
+    runs-on: [ windows-latest ]
     environment : ${{ github.event.inputs.env }}
     steps:
      - name : Checkout MDCCB Packaging repo
@@ -150,7 +150,7 @@ jobs:
   UnContainNode:
     name :  ${{ github.event.inputs.env }} uncontain_${{ github.event.inputs.deploy_node }}
     needs: [TestCC]
-    runs-on: [ ubuntu-latest ]
+    runs-on: [ windows-latest ]
     environment : ${{ github.event.inputs.env }}
     #TODO : runner will change depending on site chosen.
     steps: 
@@ -166,25 +166,25 @@ jobs:
         echo "CustomComponent:  ${{ env.CUSTOM_COMPONENT }}"
         echo "CC_Directory:  ${{ env.COMPONENT_DIRECTORY }}"
         echo "*********************"
-  ValidateInstall:
-          if: always()
-          name : CheckJobs
-          needs : [InstallCC]
-          runs-on: [ ubuntu-latest ]
-          environment : ${{ github.event.inputs.env }}
-          steps: 
-           - name: TestCC Job Failure
-             run: |
-              echo "******** failure ********"
-              if( "${{ needs.InstallCC.result }}" -ne "success")
-              {
-                exit 1
-              }    
-  ValidateTest:
-    if: always()
+  InstallFailure:
+    if: always() && needs.InstallCC.result == 'failure'
+    name : CheckJobs
+    needs : [InstallCC]
+    runs-on: [ windows-latest ]
+    environment : ${{ github.event.inputs.env }}
+    steps: 
+     - name: Install Job Failure
+       run: |
+        echo "******** failure ********"
+        if( "${{ needs.InstallCC.result }}" -ne "success")
+         {
+          exit 1
+         }    
+  ValidationFail:
+    if: always() && needs.TestCC.result == 'failure'
     name : CheckJobs
     needs : [TestCC]
-    runs-on: [ ubuntu-latest ]
+    runs-on: [ windows-latest ]
     environment : ${{ github.event.inputs.env }}
     steps: 
      - name: TestCC Job Failure
