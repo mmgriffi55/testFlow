@@ -56,9 +56,30 @@ env:
    COMPONENT_DIRECTORY : ${{ github.event.inputs.component_directory }}
    DLL_LOCATION : ${{ github.event.inputs.dll_location}}
 jobs:
+  Prevalidate:
+    name :  ${{ github.event.inputs.env }} backup ${{ github.event.inputs.custom_component }}
+    runs-on: [ windows-latest]
+    environment : ${{ github.event.inputs.env }}
+    #TODO : runner will change depending on site chosen.
+    steps: 
+    - name: Checkout MDCCB Packaging Repo
+      uses: actions/checkout@v3 
+    - name: Prevalidate  ${{ env.CUSTOM_COMPONENT }}
+      if: ${{ (github.event.inputs.custom_component != 'None') }}
+      run: | 
+        echo "****** INPUTS *******"
+        echo "Backup  ${{ env.DEPLOY_NODE }}"
+        echo "Env:  ${{ env.INSTALL_ENV }}"
+        echo "Node:  ${{ env.DEPLOY_NODE }}"
+        echo "CustomComponent:  ${{ env.CUSTOM_COMPONENT }}"
+        echo "CC_Directory:  ${{ env.COMPONENT_DIRECTORY }}"
+        echo "DLL Location ${{env.DLL_LOCATION}}"
+        echo "*********************"
+        echo "Workspace: ${{ github.WORKSPACE }}"
   BackupCC_Files:
     name :  ${{ github.event.inputs.env }} backup ${{ github.event.inputs.custom_component }}
     runs-on: [ windows-latest]
+    needs : [ Prevalidate ]
     environment : ${{ github.event.inputs.env }}
     #TODO : runner will change depending on site chosen.
     steps: 
