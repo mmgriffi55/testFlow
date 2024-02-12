@@ -178,21 +178,35 @@ jobs:
         echo "CustomComponent:  ${{ env.CUSTOM_COMPONENT }}"
         echo "CC_Directory:  ${{ env.COMPONENT_DIRECTORY }}"
         echo "*********************"
-  Backout:
-    if: always() && (needs.TestCC.result == 'failure' || needs.InstallCC.result == 'failure' )
+  BackoutInstallFail:
+    if: always() && (needs.InstallCC.result == 'failure' )
+    name : BackoutOnFailure
+    needs : [InstallCC]
+    runs-on: [ windows-latest ]
+    environment : ${{ github.event.inputs.env }}
+    steps: 
+     - name: Install Job Failure Backout
+       run: |
+        echo "******** failure ********"
+        if( "${{ needs.InstallCC.result }}" -ne "success")
+        {
+          echo "Executing backout steps "
+        }  
+  BackoutTestFail:
+    if: always() && (needs.TestCC.result == 'failure' )
     name : BackoutOnFailure
     needs : [TestCC]
     runs-on: [ windows-latest ]
     environment : ${{ github.event.inputs.env }}
     steps: 
-     - name: TestCC Job Failure
+     - name: Validation Job Failure Backout
        run: |
         echo "******** failure ********"
         if( "${{ needs.TestCC.result }}" -ne "success")
-        {
+         {
           echo "Executing backout steps "
-        }  
-
+         }  
+      
 
 
 
