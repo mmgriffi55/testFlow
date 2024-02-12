@@ -44,6 +44,10 @@ on:
         default: 0
         required: false
         type: number
+       Copy_step_result:
+        default: 0
+        required: false
+        type: number        
 
 env: 
    INSTALL_ENV: ${{ github.event.inputs.env }}
@@ -111,6 +115,10 @@ jobs:
         echo "CustomComponent:  ${{ env.CUSTOM_COMPONENT }}"
         echo "CC_Directory:  ${{ env.COMPONENT_DIRECTORY }}"
         echo "*********************"
+        if( "${{ github.event.inputs.Copy_step_result }}" -ne "0")
+        {
+         exit 1
+        }   
 
   InstallCC:
     name: ${{ github.event.inputs.env }} install ${{ github.event.inputs.custom_component }}
