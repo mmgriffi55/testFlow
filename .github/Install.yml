@@ -1,0 +1,167 @@
+# Name : InstallCustomComponent.yml
+# 
+###################
+name : InstallCustomComponent
+on:
+  # runs workflow manually from Actions tab in web UI 
+  workflow_dispatch: 
+    inputs:
+       custom_component:
+        #this is the name of the custom component like "IntelTWS" etc
+        description: 'enter the Cusom Component name'
+        default: 'custom_component'
+        required: true
+        type: string
+       env:
+         description: 'environment to install  etc'
+         default: 'dev'
+         required: true
+         type: choice
+         options:
+          - dev
+       deploy_node:
+         description: 'The server FQDN where the dll will be installed'
+         default: "server.domain.intel.com"
+         required: true
+         type: string
+       # There are cases where a Custom Component name does not match the top level folder it uses. 
+       component_directory:
+         description: 'The Folder'
+         default: "<name>"
+         required: true
+         type: string
+       #need to define if the dll are installed in a named folder, or the root.
+       dll_location:  
+        description: subfolder where DLL is placed. Leave blank if top level is used
+        default: '""'
+        required: false
+        type: string
+env: 
+   INSTALL_ENV: ${{ github.event.inputs.env }}
+   CUSTOM_COMPONENT : ${{ github.event.inputs.custom_component }}
+   DEPLOY_NODE : ${{ github.event.inputs.deploy_node }}
+   COMPONENT_DIRECTORY : ${{ github.event.inputs.component_directory }}
+   DLL_LOCATION : ${{ github.event.inputs.dll_location}}
+jobs:
+  BackupCC_Files:
+    name :  ${{ github.event.inputs.env }} backup ${{ github.event.inputs.custom_component }}
+    runs-on: [ ubuntu-latest]
+    environment : ${{ github.event.inputs.env }}
+    #TODO : runner will change depending on site chosen.
+    steps: 
+    - name: Checkout MDCCB Packaging Repo
+      uses: actions/checkout@v3 
+    - name: backup ${{ env.CUSTOM_COMPONENT }}
+      if: ${{ (github.event.inputs.custom_component != 'None') }}
+      run: | 
+        echo "****** INPUTS *******"
+        echo "Backup  ${{ env.DEPLOY_NODE }}"
+        echo "Env:  ${{ env.INSTALL_ENV }}"
+        echo "Node:  ${{ env.DEPLOY_NODE }}"
+        echo "CustomComponent:  ${{ env.CUSTOM_COMPONENT }}"
+        echo "CC_Directory:  ${{ env.COMPONENT_DIRECTORY }}"
+        echo "DLL Location ${{env.DLL_LOCATION}}"
+        echo "*********************"
+        echo "Workspace: ${{ github.WORKSPACE }}"
+        
+  ContainNode:
+    name :  ${{ github.event.inputs.env }} contain_${{ github.event.inputs.deploy_node }}
+    needs : [BackupCC_Files]
+    runs-on: [ ubuntu-latest ]
+    environment : ${{ github.event.inputs.env }}
+    #TODO : runner will change depending on site chosen.
+    steps: 
+    - name: Checkout MDCCB Packaging Repo
+      uses: actions/checkout@v3 
+    - name: Contain ${{ env.DEPLOY_NODE }}
+      if: ${{ (github.event.inputs.custom_component != 'None') }}
+      run: | 
+        echo "****** INPUTS *******"
+        echo "Containing  ${{ env.DEPLOY_NODE }}"
+        echo "Env:  ${{ env.INSTALL_ENV }}"
+        echo "Node:  ${{ env.DEPLOY_NODE }}"
+        echo "CustomComponent:  ${{ env.CUSTOM_COMPONENT }}"
+        echo "CC_Directory:  ${{ env.COMPONENT_DIRECTORY }}"
+        echo "DLL Location ${{env.DLL_LOCATION}}"
+        echo "*********************"
+  CopyFiles:
+    name: ${{ github.event.inputs.env }} copy ${{ github.event.inputs.custom_component }}
+    needs : [ContainNode]
+    runs-on: [ ubuntu-latest ]
+    environment : ${{ github.event.inputs.env }}
+    steps: 
+     - name: Checkout MDCCB Packaging Repo
+       uses: actions/checkout@v3 
+     - name : Copy ${{ env.CUSTOM_COMPONENT}}
+       if: ${{ (github.event.inputs.custom_component != 'None') }}
+       run: | 
+        echo "****** INPUTS *******"
+        echo "Copying Files ${{ github.event.inputs.custom_component }}"
+        echo "Env:  ${{ env.INSTALL_ENV }}"
+        echo "Node:  ${{ env.DEPLOY_NODE }}"
+        echo "CustomComponent:  ${{ env.CUSTOM_COMPONENT }}"
+        echo "CC_Directory:  ${{ env.COMPONENT_DIRECTORY }}"
+        echo "*********************"
+
+  InstallCC:
+    name: ${{ github.event.inputs.env }} install ${{ github.event.inputs.custom_component }}
+    needs : [CopyFiles]
+    runs-on: [ ubuntu-latest ]
+    environment : ${{ github.event.inputs.env }}
+    steps: 
+     - name: Checkout MDCCB Packaging Repo
+       uses: actions/checkout@v3 
+     - name : Install ${{ env.CUSTOM_COMPONENT}}
+       if: ${{ (github.event.inputs.custom_component != 'None') }}
+       run: | 
+        echo "****** INPUTS *******"
+        echo "Installing ${{ github.event.inputs.custom_component }}"
+        echo "Env:  ${{ env.INSTALL_ENV }}"
+        echo "Node:  ${{ env.DEPLOY_NODE }}"
+        echo "CustomComponent:  ${{ env.CUSTOM_COMPONENT }}"
+        echo "CC_Directory:  ${{ env.COMPONENT_DIRECTORY }}"
+        echo "*********************"
+
+  TestCC:
+    name: ${{ github.event.inputs.env }} validate ${{ github.event.inputs.custom_component }}
+    needs: [InstallCC]
+    runs-on: [ ubuntu-latest ]
+    environment : ${{ github.event.inputs.env }}
+    steps:
+     - name : Checkout MDCCB Packaging repo
+       uses : actions/checkout@v3
+     - name : Validate ${{ env.CUSTOM_COMPONENT}}
+       if: ${{ (github.event.inputs.custom_component != 'None') }}
+       run: | 
+        echo "****** INPUTS *******"
+        echo "Validating ${{ github.event.inputs.custom_component }}"
+        echo "Env:  ${{ env.INSTALL_ENV }}"
+        echo "Node:  ${{ env.DEPLOY_NODE }}"
+        echo "CustomComponent:  ${{ env.CUSTOM_COMPONENT }}"
+        echo "CC_Directory:  ${{ env.COMPONENT_DIRECTORY }}"
+        echo "*********************"
+    
+  UnContainNode:
+    name :  ${{ github.event.inputs.env }} uncontain_${{ github.event.inputs.deploy_node }}
+    needs: [TestCC]
+    runs-on: [ ubuntu-latest ]
+    environment : ${{ github.event.inputs.env }}
+    #TODO : runner will change depending on site chosen.
+    steps: 
+     - name: Checkout MDCCB Packaging Repo
+       uses: actions/checkout@v3 
+     - name: UnContain ${{ env.DEPLOY_NODE }}
+       if: ${{ (github.event.inputs.custom_component != 'None') }}
+       run: | 
+        echo "****** INPUTS *******"
+        echo "Uncontain  ${{ env.DEPLOY_NODE }}"
+        echo "Env:  ${{ env.INSTALL_ENV }}"
+        echo "Node:  ${{ env.DEPLOY_NODE }}"
+        echo "CustomComponent:  ${{ env.CUSTOM_COMPONENT }}"
+        echo "CC_Directory:  ${{ env.COMPONENT_DIRECTORY }}"
+        echo "*********************"
+        
+
+
+
+
