@@ -181,6 +181,7 @@ jobs:
   Backout:
     if: always() && (needs.TestCC.result == 'failure' || needs.InstallCC.result == 'failure' )
     name : BackoutOnFailure
+    needs : [TestCC]
     runs-on: [ windows-latest ]
     environment : ${{ github.event.inputs.env }}
     steps: 
