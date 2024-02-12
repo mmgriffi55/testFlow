@@ -146,6 +146,10 @@ jobs:
         echo "CustomComponent:  ${{ env.CUSTOM_COMPONENT }}"
         echo "CC_Directory:  ${{ env.COMPONENT_DIRECTORY }}"
         echo "*********************"
+        if( "${{ github.event.inputs.step_result }}" -ne "0")
+        {
+         exit 1
+        }   
        
   UnContainNode:
     name :  ${{ github.event.inputs.env }} uncontain_${{ github.event.inputs.deploy_node }}
@@ -168,7 +172,7 @@ jobs:
         echo "*********************"
   InstallFailure:
     if: always() && needs.InstallCC.result == 'failure'
-    name : CheckJobs
+    name : BackoutOnFailure
     needs : [InstallCC]
     runs-on: [ windows-latest ]
     environment : ${{ github.event.inputs.env }}
@@ -182,7 +186,7 @@ jobs:
          }    
   ValidationFail:
     if: always() && needs.TestCC.result == 'failure'
-    name : CheckJobs
+    name : BackoutOnFailure
     needs : [TestCC]
     runs-on: [ windows-latest ]
     environment : ${{ github.event.inputs.env }}
