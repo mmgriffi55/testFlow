@@ -36,6 +36,11 @@ on:
         default: '""'
         required: false
         type: string
+       step_result:
+        default: 0
+        required: false
+        type: number
+
 env: 
    INSTALL_ENV: ${{ github.event.inputs.env }}
    CUSTOM_COMPONENT : ${{ github.event.inputs.custom_component }}
@@ -116,6 +121,7 @@ jobs:
        run: | 
         echo "****** INPUTS *******"
         echo "Installing ${{ github.event.inputs.custom_component }}"
+        echo "results of step ${{ github.event.inputs.step_result}}"
         echo "Env:  ${{ env.INSTALL_ENV }}"
         echo "Node:  ${{ env.DEPLOY_NODE }}"
         echo "CustomComponent:  ${{ env.CUSTOM_COMPONENT }}"
@@ -140,7 +146,7 @@ jobs:
         echo "CustomComponent:  ${{ env.CUSTOM_COMPONENT }}"
         echo "CC_Directory:  ${{ env.COMPONENT_DIRECTORY }}"
         echo "*********************"
-    
+       
   UnContainNode:
     name :  ${{ github.event.inputs.env }} uncontain_${{ github.event.inputs.deploy_node }}
     needs: [TestCC]
@@ -160,7 +166,34 @@ jobs:
         echo "CustomComponent:  ${{ env.CUSTOM_COMPONENT }}"
         echo "CC_Directory:  ${{ env.COMPONENT_DIRECTORY }}"
         echo "*********************"
-        
+  ValidateInstall:
+          if: always()
+          name : CheckJobs
+          needs : [InstallCC]
+          runs-on: [ ubuntu-latest ]
+          environment : ${{ github.event.inputs.env }}
+          steps: 
+           - name: TestCC Job Failure
+             run: |
+              echo "******** failure ********"
+              if( "${{ needs.InstallCC.result }}" -ne "success")
+              {
+                exit 1
+              }    
+  ValidateTest:
+    if: always()
+    name : CheckJobs
+    needs : [TestCC]
+    runs-on: [ ubuntu-latest ]
+    environment : ${{ github.event.inputs.env }}
+    steps: 
+     - name: TestCC Job Failure
+       run: |
+        echo "******** failure ********"
+        if( "${{ needs.TestCC.result }}" -ne "success")
+        {
+          exit 1
+        }  
 
 
 
