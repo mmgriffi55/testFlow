@@ -57,7 +57,7 @@ env:
    DLL_LOCATION : ${{ github.event.inputs.dll_location}}
 jobs:
   Prevalidate:
-    name :  ${{ github.event.inputs.env }} backup ${{ github.event.inputs.custom_component }}
+    name :  ${{ github.event.inputs.env }} Prevalidate ${{ github.event.inputs.custom_component }}
     runs-on: [ windows-latest]
     environment : ${{ github.event.inputs.env }}
     #TODO : runner will change depending on site chosen.
