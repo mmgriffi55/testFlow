@@ -36,7 +36,11 @@ on:
         default: '""'
         required: false
         type: string
-       step_result:
+       Install_step_result:
+        default: 0
+        required: false
+        type: number
+       Validate_step_result:
         default: 0
         required: false
         type: number
@@ -127,6 +131,10 @@ jobs:
         echo "CustomComponent:  ${{ env.CUSTOM_COMPONENT }}"
         echo "CC_Directory:  ${{ env.COMPONENT_DIRECTORY }}"
         echo "*********************"
+        if( "${{ github.event.inputs.Install_step_result }}" -ne "0")
+        {
+         exit 1
+        }
 
   TestCC:
     name: ${{ github.event.inputs.env }} validate ${{ github.event.inputs.custom_component }}
@@ -146,7 +154,7 @@ jobs:
         echo "CustomComponent:  ${{ env.CUSTOM_COMPONENT }}"
         echo "CC_Directory:  ${{ env.COMPONENT_DIRECTORY }}"
         echo "*********************"
-        if( "${{ github.event.inputs.step_result }}" -ne "0")
+        if( "${{ github.event.inputs.Validate_step_result }}" -ne "0")
         {
          exit 1
         }   
@@ -182,7 +190,7 @@ jobs:
         echo "******** failure ********"
         if( "${{ needs.InstallCC.result }}" -ne "success")
          {
-          exit 1
+          echo "Executing backout steps "
          }    
   ValidationFail:
     if: always() && needs.TestCC.result == 'failure'
@@ -196,7 +204,7 @@ jobs:
         echo "******** failure ********"
         if( "${{ needs.TestCC.result }}" -ne "success")
         {
-          exit 1
+          echo "Executing backout steps "
         }  
 
 
